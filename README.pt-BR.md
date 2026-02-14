@@ -1,4 +1,4 @@
-🇧🇷 Português | 🇺🇸[English(README.md)]
+🇧🇷 Português | 🇺🇸[English](README.md)
 # Koruspy 🦀
 
 **v0.9.8** --- Abstrações funcionais para Python (inspiradas em Rust /
