@@ -116,6 +116,17 @@ def async_option(coro):
         return await coro
     return AsyncOption(_inner()) 
     
+def async_option_of(awaitable):
+    async def _inner():
+        value = await awaitable
+        if value is None or value is nothing:
+            return nothing
+        if isinstance(value, Some):
+            return value
+        return Some(value)
+
+    return AsyncOption(_inner())
+
 def AsyncOptionize(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):

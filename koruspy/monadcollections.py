@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TypeVar, Generic, Callable
 import collections
+from collections import deque
 from itertools import dropwhile
 from collections.abc import Sequence
 from .Option import Some, nothing, _NoneOption
@@ -326,7 +327,7 @@ class LazyList(Generic[T]):
             fn(item)
 
 
-class FrozenSomeList(Sequence):
+class FrozenSomeList(Generic[T], Sequence):
     __slots__ = ("_data", "_hash")
 
     def __init__(self, iterable):
@@ -348,6 +349,12 @@ class FrozenSomeList(Sequence):
 
     def __hash__(self):
         return self._hash
+
+    def unwrap_values(self) -> tuple[T, ...]:
+        return tuple(s.unwrap() for s in self._data if isinstance(s, Some))
+
+    def unwrap_list(self):
+        return self._data
 
     def __eq__(self, other):
         if isinstance(other, FrozenSomeList):

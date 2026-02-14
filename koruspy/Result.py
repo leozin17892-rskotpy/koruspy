@@ -2,6 +2,7 @@ from .errors import ResultUnwrapError, KoruspyError
 from typing import Generic, TypeVar, Callable, NoReturn, TypeAlias, Literal, overload, TypeGuard, Type, ParamSpec
 from dataclasses import dataclass
 import functools
+from io import TextIOWrapper
 
 T_co = TypeVar("T_co", covariant=True)
 E_co = TypeVar("E_co", covariant=True)
@@ -124,8 +125,8 @@ class Err(Generic[E_co]):
         return True
 
 Result: TypeAlias = Okay[T_co] | Err[E_co]
-E = TypeVar("E", bound=BaseException)
 P = ParamSpec("P")
+E = TypeVar("E")
 
 def result_of(func: Callable[P, U], *args: P.args, errors: tuple[Type[E], ...],**kwargs: P.kwargs) -> Okay[U] | Err[E]:
     try:
@@ -135,10 +136,34 @@ def result_of(func: Callable[P, U], *args: P.args, errors: tuple[Type[E], ...],*
 
 def Resultize(func):
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: P.args, **kwargs: P.kwargs):
         try:
-            return Okay(func(*args, **kwargs))
+            result = func(*args, **kwargs)
+            return result if isinstance(result, Result) else Okay(result)
         except Exception as e:
             return Err(e)
     return wrapper
-    
+
+
+class ResultFileManager:
+     def __init__(self, path: str, mode: str = "r"):
+         self.path = path
+         self.mode = mode
+     
+     def read(self, callback: Callable[[TextIOWrapper], U]) -> Result:
+         try:
+             with open(self.path, self.mode) as file:
+                 return Okay(callback(file))
+         except FileNotFoundError as fe:
+             return Err(str(fe))
+     
+     def write(self, content: str) -> Result[None, str]:
+         try:
+             if any(m in self.mode for m in ["a", "w", "+"]):
+                 with open(self.path, self.mode) as file:
+                     file.write(content)
+                 return ResultFileManager(self.path, self.mode)
+             else:
+                 return Err(f"PermissionError: mode {self.mode} doesn't support writing. use 'a'(Append), 'w'(OverWrite) or modes with '+' to use this function.")     
+         except (FileNotFoundError, IOError, PermissionError) as e:
+              return Err(str(e))

@@ -17,6 +17,14 @@
     ".md": {
       "enabled": true,
       "run": "marksman server"
+    },
+    ".pyi": {
+      "enabled": true,
+      "run": "pylsp"
+    },
+    ".html": {
+      "enabled": true,
+      "run": "vscode-html-language-server --stdio"
     }
   }
 }

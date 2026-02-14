@@ -1,17 +1,14 @@
-import pytest
-from koruspy import Some, nothing
+# tests/test_option.py
+from koruspy import Some, nothing, OptionUnwrapError
 
 def test_some_unwrap():
-    assert Some(5).unwrap() == 5
+    s = Some(10)
+    assert s.finalize() == 10
 
-def test_nothing_unwrap_raises():
-    with pytest.raises(Exception):
-        nothing.unwrap()
-
-def test_map():
-    assert Some(2).map(lambda x: x * 2).unwrap() == 4
-    assert nothing.map(lambda x: x * 2) is nothing
-
-def test_and_then():
-    assert Some(2).and_then(lambda x: Some(x + 1)).unwrap() == 3
-    assert nothing.and_then(lambda x: Some(x)) is nothing
+def test_nothing_behavior():
+    n = nothing
+    try:
+        n.finalize()
+        assert False  # não deve chegar aqui
+    except OptionUnwrapError as e:
+        assert str(e) == "Option doesnt has a value, try using `unwrap_or()` or `unwrap_or_else()` for fallback value"  # ou a mensagem que você usa

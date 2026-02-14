@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TypeVar, Generic, Callable, overload, TypeAlias, TypeGuard, NoReturn
+from typing import TypeVar, Generic, Callable, overload, TypeAlias, TypeGuard, NoReturn, ParamSpec
 from .errors import OptionUnwrapError
 import functools 
 
@@ -207,10 +207,11 @@ def option_of(value: U | None) -> Option[U]:
         return value
     return Some(value)
 
+P = ParamSpec("P")
 
-def Optionize(func):
+def Optionize(func: Callable[P, U | None]) -> Callable[P, Option[U]]:
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> Option[U]:
         result = func(*args, **kwargs)
         if result is None or result is nothing:
             return nothing
